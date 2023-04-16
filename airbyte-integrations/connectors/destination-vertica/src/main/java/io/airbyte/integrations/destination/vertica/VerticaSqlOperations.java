@@ -40,17 +40,6 @@ public class VerticaSqlOperations extends JdbcSqlOperations {
             return;
         }
         jdbcDatabase.execute(connection -> {
-
-            // Strategy: We want to use PreparedStatement because it handles binding values to the SQL query
-            // (e.g. handling formatting timestamps). A PreparedStatement statement is created by supplying the
-            // full SQL string at creation time. Then subsequently specifying which values are bound to the
-            // string. Thus there will be two loops below.
-            // 1) Loop over records to build the full string.
-            // 2) Loop over the records and bind the appropriate values to the string.
-            //
-            // The "SELECT 1 FROM DUAL" at the end is a formality to satisfy the needs of the Oracle syntax.
-            // (see https://stackoverflow.com/a/93724 for details)
-            System.out.println("--------------- Executed --------------------");
             final StringBuilder sql = new StringBuilder(String.format("INSERT INTO %s %s VALUES %s", tableName, columns, recordQueryComponent));
             //records.forEach(r -> sql.append(String.format("INTO %s %s VALUES %s", tableName, columns, recordQueryComponent)));
             final String query = sql.toString().trim();
@@ -85,17 +74,6 @@ public class VerticaSqlOperations extends JdbcSqlOperations {
 
     @Override
     public String createTableQuery(final JdbcDatabase database, final String schemaName, final String tableName) {
-        /*
-        return String.format(
-                "CREATE TABLE %s.%s ( \n"
-                        + "%s VARCHAR(64) PRIMARY KEY,\n"
-                        + "%s LONG VARCHAR,\n"
-                        + "%s TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP\n"
-                        + ")",
-                schemaName, tableName,
-                VerticaDestination.COLUMN_NAME_AB_ID, VerticaDestination.COLUMN_NAME_DATA, VerticaDestination.COLUMN_NAME_EMITTED_AT,
-                VerticaDestination.COLUMN_NAME_DATA);
-                */
         final String query = String.format(
                 "CREATE TABLE IF NOT EXISTS %s.%s (%s VARCHAR(500) PRIMARY KEY,%s VARCHAR(1000),%s VARCHAR(1000));", schemaName, tableName, VerticaDestination.COLUMN_NAME_AB_ID, VerticaDestination.COLUMN_NAME_DATA,VerticaDestination.COLUMN_NAME_EMITTED_AT);
         return query;
