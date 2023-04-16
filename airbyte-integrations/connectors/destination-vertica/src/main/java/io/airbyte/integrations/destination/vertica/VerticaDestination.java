@@ -160,7 +160,6 @@ public class VerticaDestination extends AbstractJdbcDestination implements Desti
     if (config.has(JdbcUtils.JDBC_URL_PARAMS_KEY)) {
       configBuilder.put(JdbcUtils.JDBC_URL_PARAMS_KEY, config.get(JdbcUtils.JDBC_URL_PARAMS_KEY));
     }
-
     return Jsons.jsonNode(configBuilder.build());
   }
 

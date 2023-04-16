@@ -19,20 +19,6 @@ import java.util.function.Supplier;
 public class VerticaSqlOperations extends JdbcSqlOperations {
 
     private boolean isLocalFileEnabled = false;
-
-    @Override
-    public void insertRecords(final JdbcDatabase database,
-                              final List<AirbyteRecordMessage> records,
-                              final String schemaName,
-                              final String tempTableName)
-            throws Exception {
-        final String tableName = String.format("%s.%s", schemaName, tempTableName);
-        final String columns = String.format("(%s, %s, %s)",
-                VerticaDestination.COLUMN_NAME_AB_ID, VerticaDestination.COLUMN_NAME_DATA, VerticaDestination.COLUMN_NAME_EMITTED_AT);
-        final String recordQueryComponent = "(?, ?, ?);\n";
-        insertRawRecordsInSingleQuery(tableName, columns, recordQueryComponent, database, records, UUID::randomUUID);
-    }
-
     @Override
     protected void insertRecordsInternal(JdbcDatabase database, List<AirbyteRecordMessage> records, String schemaName, String tableName) throws Exception {
         final String tableNamee = String.format("%s.%s", schemaName, tableName);
@@ -64,6 +50,7 @@ public class VerticaSqlOperations extends JdbcSqlOperations {
             //
             // The "SELECT 1 FROM DUAL" at the end is a formality to satisfy the needs of the Oracle syntax.
             // (see https://stackoverflow.com/a/93724 for details)
+            System.out.println("--------------- Executed --------------------");
             final StringBuilder sql = new StringBuilder(String.format("INSERT INTO %s %s VALUES %s", tableName, columns, recordQueryComponent));
             //records.forEach(r -> sql.append(String.format("INTO %s %s VALUES %s", tableName, columns, recordQueryComponent)));
             final String query = sql.toString().trim();
@@ -110,7 +97,7 @@ public class VerticaSqlOperations extends JdbcSqlOperations {
                 VerticaDestination.COLUMN_NAME_DATA);
                 */
         final String query = String.format(
-                "CREATE TABLE IF NOT EXISTS %s.%s (%s VARCHAR(64) PRIMARY KEY,%s VARCHAR(64),%s VARCHAR(64));", schemaName, tableName, VerticaDestination.COLUMN_NAME_AB_ID, VerticaDestination.COLUMN_NAME_DATA,VerticaDestination.COLUMN_NAME_EMITTED_AT);
+                "CREATE TABLE IF NOT EXISTS %s.%s (%s VARCHAR(500) PRIMARY KEY,%s VARCHAR(1000),%s VARCHAR(1000));", schemaName, tableName, VerticaDestination.COLUMN_NAME_AB_ID, VerticaDestination.COLUMN_NAME_DATA,VerticaDestination.COLUMN_NAME_EMITTED_AT);
         return query;
     }
 
