@@ -3,7 +3,8 @@
   "supportsIncremental": true,
   "supportsNormalization": true,
   "supportsDBT": true,
-  "connectionSpecification": {
+  "supported_destination_sync_modes": ["overwrite"],
+    "connectionSpecification": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Vertica Destination Spec",
     "type": "object",

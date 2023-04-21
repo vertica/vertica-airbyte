@@ -6,33 +6,24 @@ package io.airbyte.integrations.source.vertica;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import io.airbyte.commons.exceptions.ConnectionErrorException;
-import io.airbyte.commons.functional.CheckedConsumer;
 import io.airbyte.commons.json.Jsons;
 import io.airbyte.db.factory.DatabaseDriver;
 import io.airbyte.db.jdbc.JdbcUtils;
 import io.airbyte.db.jdbc.streaming.AdaptiveStreamingQueryConfig;
-import io.airbyte.integrations.base.AirbyteTraceMessageUtility;
 import io.airbyte.integrations.base.IntegrationRunner;
 import io.airbyte.integrations.base.Source;
 import io.airbyte.integrations.base.ssh.SshWrappedSource;
 import io.airbyte.integrations.source.jdbc.AbstractJdbcSource;
-import io.airbyte.integrations.util.ApmTraceUtils;
-import io.airbyte.integrations.util.ConnectorExceptionUtil;
 import io.airbyte.integrations.util.HostPortResolver;
-import io.airbyte.protocol.models.v0.AirbyteCatalog;
-import io.airbyte.protocol.models.v0.AirbyteConnectionStatus;
-import io.airbyte.protocol.models.v0.AirbyteStream;
 import io.airbyte.protocol.models.v0.SyncMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import io.airbyte.protocol.models.v0.AirbyteStream;
 import java.sql.JDBCType;
 import java.util.List;
 import java.util.Set;
-
-import static io.airbyte.integrations.base.errors.messages.ErrorMessage.getErrorMessage;
+import com.google.common.collect.Lists;
+import io.airbyte.protocol.models.v0.AirbyteCatalog;
 import static java.util.stream.Collectors.toList;
 
 public class VerticaSource extends AbstractJdbcSource<JDBCType> implements Source {
@@ -41,8 +32,6 @@ public class VerticaSource extends AbstractJdbcSource<JDBCType> implements Sourc
 
   // TODO insert your driver name. Ex: "com.microsoft.sqlserver.jdbc.SQLServerDriver"
   public static final String DRIVER_CLASS = DatabaseDriver.VERTICA.getDriverClassName();
-
-  private static final int INTERMEDIATE_STATE_EMISSION_FREQUENCY = 10_000;
 
   public VerticaSource() {
     // TODO: if the JDBC driver does not support custom fetch size, use NoOpStreamingQueryConfig
@@ -71,31 +60,24 @@ public class VerticaSource extends AbstractJdbcSource<JDBCType> implements Sourc
     if (config.has(JdbcUtils.PASSWORD_KEY)) {
       configBuilder.put(JdbcUtils.PASSWORD_KEY, config.get(JdbcUtils.PASSWORD_KEY).asText());
     }
-    System.out.println("---------------- toDatabaseConfig ----------------");
-    System.out.println(jdbcUrl);
     return Jsons.jsonNode(configBuilder.build());
   }
 
-  /**
-   * Since the Oracle connector allows a user to specify schemas, and picks a default schemas
-   * otherwise, system tables are never included, and do not need to be excluded by default.
-   */
   @Override
   public Set<String> getExcludedInternalNameSpaces() {
     return Set.of("v_catalog","v_monitor","online_sales","public");
   }
 
   private static AirbyteStream overrideSyncModes(final AirbyteStream stream) {
-    return stream.withSupportedSyncModes(Lists.newArrayList());
+    return stream.withSupportedSyncModes(Lists.newArrayList(SyncMode.FULL_REFRESH));
   }
-    @Override
+  @Override
   public AirbyteCatalog discover(final JsonNode config) throws Exception {
     final AirbyteCatalog catalog = super.discover(config);
-      final List<AirbyteStream> streams = catalog.getStreams().stream()
-              .map(VerticaSource::overrideSyncModes)
-              .collect(toList());
-
-      catalog.setStreams(streams);
+    final List<AirbyteStream> streams = catalog.getStreams().stream()
+            .map(VerticaSource::overrideSyncModes)
+            .collect(toList());
+    catalog.setStreams(streams);
     return catalog;
   }
 

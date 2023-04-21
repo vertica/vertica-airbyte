@@ -7,7 +7,7 @@ public class VerticaNameTransformer extends StandardNameTransformer {
     @Override
     public String getRawTableName(final String streamName) {
         final String rawTableName = applyDefaultCase(super.getRawTableName(streamName));
-        return rawTableName.substring(rawTableName.lastIndexOf("_")+1);
+        return rawTableName.substring(13,rawTableName.length());
     }
 
 }
